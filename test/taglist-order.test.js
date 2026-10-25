@@ -1,6 +1,6 @@
-import { taglistOrderVariants, taglistOrderParser, splitTagToArray } from '../src/scripts/taglist-order.js';
-import { getTagComparator } from '../src/scripts/taglist-order.js';
-import { DockerRegistryUIError } from '../src/scripts/error.js';
+import { taglistOrderVariants, taglistOrderParser, splitTagToArray } from '../src/lib/taglist-order';
+import { getTagComparator } from '../src/lib/taglist-order';
+import { DockerRegistryUIError } from '../src/lib/error';
 import assert from 'assert';
 
 describe('taglist-order tests', () => {
@@ -37,7 +37,7 @@ describe('taglist-order tests', () => {
 
     it('should throw error on incorrect values', () => {
       ['alpha-desc;alpha-asc', 'foobar'].forEach((e) =>
-        assert.throws(() => taglistOrderVariants(e), DockerRegistryUIError, `Did not throw on ${e}`)
+        assert.throws(() => taglistOrderVariants(e), DockerRegistryUIError, `Did not throw on ${e}`),
       );
     });
   });
@@ -52,14 +52,14 @@ describe('taglist-order tests', () => {
     it('should parse correctly `num-asc;alpha-asc` and variants', () => {
       const expected = { numAsc: true, alphaAsc: true, numFirst: true };
       ['asc', 'num-asc;alpha-asc', 'num-asc'].forEach((e) =>
-        assert.deepEqual(taglistOrderParser(e), expected, `wrong result for ${e}`)
+        assert.deepEqual(taglistOrderParser(e), expected, `wrong result for ${e}`),
       );
     });
 
     it('should parse correctly `alpha-desc;num-desc` and variants', () => {
       const expected = { numAsc: false, alphaAsc: false, numFirst: false };
       ['desc', 'alpha-desc;num-desc'].forEach((e) =>
-        assert.deepEqual(taglistOrderParser(e), expected, `wrong result for ${e}`)
+        assert.deepEqual(taglistOrderParser(e), expected, `wrong result for ${e}`),
       );
     });
 

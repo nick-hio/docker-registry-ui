@@ -12,19 +12,20 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-FROM arm64v8/nginx
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
+WORKDIR /app
+COPY package.json ./
+RUN npm install --no-audit --no-fund
+COPY index.html tsconfig.json vite.config.ts components.json ./
+COPY src ./src
+COPY public ./public
+RUN npm run build
 
+FROM arm64v8/nginx:alpine-slim
 LABEL maintainer="Jones MAGLOIRE @Joxit"
-
 WORKDIR /usr/share/nginx/html/
-
-ENV NGINX_PROXY_HEADER_Host '$http_host'
-ENV NGINX_LISTEN_PORT '80'
-ENV SHOW_CATALOG_NB_TAGS 'false'
-
+ENV NGINX_PROXY_HEADER_Host='$http_host' NGINX_LISTEN_PORT=80 SHOW_CATALOG_NB_TAGS=false
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY bin/90-docker-registry-ui.sh /docker-entrypoint.d/90-docker-registry-ui.sh
-COPY dist/ /usr/share/nginx/html/
-COPY favicon.ico /usr/share/nginx/html/
-
+COPY --from=build /app/dist/ /usr/share/nginx/html/
 RUN chown -R nginx:nginx /etc/nginx/ /usr/share/nginx/html/ /var/cache/nginx /var/log/nginx

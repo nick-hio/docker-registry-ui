@@ -1,7 +1,7 @@
-import { supportListManifest, filterWrongManifests, platformToString } from '../src/scripts/docker-image.js';
-import { dockerManifestList } from './fixtures/docker-manifest-list.js';
-import { ociImageIndexLayer } from './fixtures/oci-image-index-layer.js';
-import { ociImageIndexManifest } from './fixtures/oci-image-index-manifest.js';
+import { supportListManifest, filterWrongManifests, platformToString } from '../src/lib/docker-image';
+import { dockerManifestList } from './fixtures/docker-manifest-list';
+import { ociImageIndexLayer } from './fixtures/oci-image-index-layer';
+import { ociImageIndexManifest } from './fixtures/oci-image-index-manifest';
 import assert from 'assert';
 
 describe('docker-image', () => {
@@ -32,7 +32,7 @@ describe('docker-image', () => {
     it('should return all manifests for `application/vnd.docker.distribution.manifest.list.v2+json`', () => {
       assert.equal(
         filterWrongManifests(dockerManifestList['application/vnd.docker.distribution.manifest.list.v2+json']).length,
-        2
+        2,
       );
     });
     it('should return all manifests for `application/vnd.oci.image.index.v1+json`', () => {
