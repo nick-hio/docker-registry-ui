@@ -23,6 +23,12 @@ describe('Shared hash routes', () => {
     expect(parseRoute(detailsRoute('apps/web', 'v1+build'))).toEqual({ repo: 'apps/web', tag: 'v1+build' });
     expect(parseRoute(repositoryRoute('apps/web'))).toEqual({ repo: 'apps/web', tag: '' });
   });
+  it('round trips the tag page tab and platform', () => {
+    const hash = detailsRoute('apps/web', 'v1', { tab: 'layers', platform: 'linux/arm64v8' });
+    expect(hash).toBe('#/repositories/apps%2Fweb/tags/v1?tab=layers&platform=linux%2Farm64v8');
+    expect(parseRoute(hash)).toEqual({ repo: 'apps/web', tag: 'v1', tab: 'layers', platform: 'linux/arm64v8' });
+    expect(parseRoute('#/repositories/apps%2Fweb?tab=layers')).toEqual({ repo: 'apps/web', tag: '' });
+  });
   it('accepts encoded and legacy base64 registry URL queries', () => {
     const url = 'https://registry.example';
     expect(queryRegistry(`?url=${encodeURIComponent(url)}`)).toBe(url);

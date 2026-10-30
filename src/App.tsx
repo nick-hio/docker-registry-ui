@@ -56,7 +56,7 @@ import {
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { ExplorerSidebar } from '@/components/explorer-sidebar';
-const TagDetails = lazy(() => import('@/components/tag-details').then((module) => ({ default: module.TagDetails })));
+const TagPage = lazy(() => import('@/components/tag-page').then((module) => ({ default: module.TagPage })));
 import { CopyButton, ErrorNotice, LoadingRows, NoResults, PullCommand, SearchInput } from '@/components/common';
 import { cn } from '@/lib/utils';
 const settings = readConfig();
@@ -109,8 +109,8 @@ export default function App() {
     (url === settings.registryUrl && settings.registryTitle) ||
     (url ? stripHttps(url) : settings.registryTitle || 'Registry');
   useEffect(() => {
-    document.title = `${registryTitle} · ${settings.title}`;
-  }, [registryTitle]);
+    document.title = `${route.tag ? `${route.repo}:${route.tag}` : route.repo || registryTitle} · ${settings.title}`;
+  }, [registryTitle, route.repo, route.tag]);
   useEffect(() => {
     const update = () => {
       const next = parseRoute(location.hash);
@@ -235,7 +235,8 @@ export default function App() {
   const pageCount = Math.max(1, Math.ceil(filteredTags.length / pageSize));
   const currentPage = Math.min(page, pageCount);
   const pageTags = filteredTags.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const loadTags = tagOwner === route.repo ? (sort.key === 'tag' ? pageTags : filteredTags) : [];
+  const showTagPage = !!route.tag && settings.showHistory;
+  const loadTags = tagOwner === route.repo && !showTagPage ? (sort.key === 'tag' ? pageTags : filteredTags) : [];
   const loadKey = JSON.stringify(loadTags);
   useEffect(() => {
     if (!route.repo || !loadTags.length) return;
@@ -266,8 +267,8 @@ export default function App() {
   );
   const totalTags = visibleRepositories.reduce((sum, repo) => sum + (counts[repo] || 0), 0);
   const countsReady = visibleRepositories.every((repo) => counts[repo] !== undefined);
-  const pull = (tag?: string) =>
-    `docker pull ${stripHttps(settings.pullUrl || url || location.host)}/${route.repo}${tag ? `:${tag}` : ''}`;
+  const pullHost = stripHttps(settings.pullUrl || url || location.host);
+  const pull = (tag?: string) => `docker pull ${pullHost}/${route.repo}${tag ? `:${tag}` : ''}`;
   function changeRegistry(value: string) {
     setUrl(value);
     setFilter('');
@@ -339,6 +340,7 @@ export default function App() {
       setDeleteTags([]);
       setSelected([]);
       toast.success('Images deleted');
+      if (route.tag && deleteTags.includes(route.tag)) location.hash = repositoryRoute(route.repo);
       refresh();
     } catch (error) {
       setDeleteError(getMessage(error));
@@ -389,9 +391,21 @@ export default function App() {
                   {crumbs.map((part, i) => (
                     <span key={i} className="crumb">
                       <ChevronRight />
-                      <span title={part}>{part}</span>
+                      {showTagPage && i === crumbs.length - 1 ? (
+                        <a href={repositoryRoute(route.repo)} title={route.repo}>
+                          {part}
+                        </a>
+                      ) : (
+                        <span title={part}>{part}</span>
+                      )}
                     </span>
                   ))}
+                  {showTagPage && (
+                    <span className="crumb">
+                      <ChevronRight />
+                      <span title={route.tag}>{route.tag}</span>
+                    </span>
+                  )}
                 </>
               ) : (
                 <span>Repositories</span>
@@ -415,7 +429,20 @@ export default function App() {
             </div>
           </header>
           <div className="workspace">
-            {!route.repo ? (
+            {showTagPage ? (
+              <Suspense fallback={<LoadingRows />}>
+                <TagPage
+                  key={`${url}:${route.repo}:${route.tag}:${revision}`}
+                  registry={registry}
+                  repo={route.repo}
+                  tag={route.tag}
+                  view={{ tab: route.tab, platform: route.platform }}
+                  settings={settings}
+                  pullHost={pullHost}
+                  onDelete={(tag) => requestDelete([tag])}
+                />
+              </Suspense>
+            ) : !route.repo ? (
               <>
                 <div className="page-heading">
                   <div className="page-title">
@@ -932,21 +959,6 @@ export default function App() {
             </span>
           </footer>
         </SidebarInset>
-        {settings.showHistory && route.tag && (
-          <Suspense fallback={null}>
-            <TagDetails
-              key={`${url}:${route.repo}:${route.tag}`}
-              registry={registry}
-              repo={route.repo}
-              tag={route.tag}
-              settings={settings}
-              pull={pull}
-              onClose={() => {
-                location.hash = repositoryRoute(route.repo);
-              }}
-            />
-          </Suspense>
-        )}
         <AlertDialog
           open={deleteTags.length > 0}
           onOpenChange={(open) => {

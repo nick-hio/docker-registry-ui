@@ -179,6 +179,8 @@ export class Registry {
       digest: root.digest,
       manifest: root.data,
       platforms,
+      platformDigest: selected,
+      configDigest: manifest.config?.digest,
       layers,
       config,
       size: layers.reduce((total, layer) => total + layer.size, 0),

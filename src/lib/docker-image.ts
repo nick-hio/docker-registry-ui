@@ -34,22 +34,34 @@ export type ImageConfig = {
   variant?: string;
   docker_version?: string;
   config?: {
-    Entrypoint?: string[];
-    Cmd?: string[];
-    Env?: string[];
-    Labels?: Record<string, string>;
-    ExposedPorts?: Record<string, unknown>;
-    Volumes?: Record<string, unknown>;
+    Entrypoint?: string[] | string | null;
+    Cmd?: string[] | string | null;
+    Env?: string[] | null;
+    Labels?: Record<string, string> | null;
+    ExposedPorts?: Record<string, unknown> | null;
+    Volumes?: Record<string, unknown> | null;
     WorkingDir?: string;
     User?: string;
+    StopSignal?: string;
   };
   history?: HistoryEntry[];
+  // Helm charts stored as OCI artifacts.
+  name?: string;
+  version?: string;
+  appVersion?: string;
+  kubeVersion?: string;
+  keywords?: string[];
+  home?: string;
+  sources?: string[];
 };
 export type ImageInfo = {
   tag: string;
   digest: string;
   manifest: Manifest;
   platforms: Descriptor[];
+  /** Digest of the platform manifest that was loaded, for multi-platform images. */
+  platformDigest?: string;
+  configDigest?: string;
   size: number;
   created?: string;
   config?: ImageConfig;
@@ -73,19 +85,4 @@ export function layerHistory(config: ImageConfig, layers: Descriptor[]): History
     const layer = entry.empty_layer ? undefined : layers[index++];
     return { ...entry, size: layer?.size, digest: layer?.digest };
   });
-}
-
-export function dockerfileInstructions(history: HistoryEntry[]) {
-  return history
-    .map((entry) => {
-      const raw = (entry.created_by || '').replace(/^\/bin\/sh\s+-c\s+(?:#\(nop\)\s*)?/, '').trim();
-      if (!raw) return '';
-      return /^(ADD|ARG|CMD|COPY|ENTRYPOINT|ENV|EXPOSE|FROM|HEALTHCHECK|LABEL|MAINTAINER|ONBUILD|RUN|SHELL|STOPSIGNAL|USER|VOLUME|WORKDIR)\b/.test(
-        raw,
-      )
-        ? raw
-        : `RUN ${raw}`;
-    })
-    .filter(Boolean)
-    .join('\n');
 }

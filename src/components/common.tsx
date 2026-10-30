@@ -114,13 +114,14 @@ export function LoadingRows() {
     </div>
   );
 }
-export function PullCommand({ command }: { command: string }) {
+export function PullCommand({ command, children }: { command: string; children?: React.ReactNode }) {
   return (
     <div className="pull-command">
       <span className="command-prompt" aria-hidden="true">
         $
       </span>
       <code title={command}>{command}</code>
+      {children}
       <CopyButton value={command} label="Copy pull command" />
     </div>
   );

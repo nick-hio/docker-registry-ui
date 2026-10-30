@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { Registry } from '../src/lib/registry';
-import { dockerfileInstructions, layerHistory, type Manifest } from '../src/lib/docker-image';
+import { layerHistory, type Manifest } from '../src/lib/docker-image';
 import { dockerManifestList } from './fixtures/docker-manifest-list.js';
 import { ociImageIndexManifest } from './fixtures/oci-image-index-manifest.js';
 import { ociImageIndexLayer } from './fixtures/oci-image-index-layer.js';
@@ -107,6 +107,8 @@ describe('Image loading and deletion', () => {
     expect(info.digest).toBe('sha256:parent');
     expect(info.size).toBe(512);
     expect(info.history[0].digest).toBe('sha256:def');
+    expect(info.platformDigest).toBe(child.digest);
+    expect(info.configDigest).toBe('sha256:abc');
     await registry.image('app', 'latest');
     expect(fetch).toHaveBeenCalledTimes(3);
   });
@@ -140,18 +142,5 @@ describe('Image loading and deletion', () => {
       { created_by: 'ENV a=b', empty_layer: true, size: undefined, digest: undefined },
       { created_by: 'RUN a', size: 42, digest: 'sha256:a' },
     ]);
-  });
-});
-
-describe('Dockerfile reconstruction', () => {
-  it('normalizes classic shell history and keeps BuildKit instructions', () => {
-    expect(
-      dockerfileInstructions([
-        { created_by: '/bin/sh -c #(nop) ENV NODE_ENV=production' },
-        { created_by: '/bin/sh -c apk add curl' },
-        { created_by: 'COPY . /app # buildkit' },
-        { empty_layer: true },
-      ]),
-    ).toBe('ENV NODE_ENV=production\nRUN apk add curl\nCOPY . /app # buildkit');
   });
 });
