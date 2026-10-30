@@ -1,35 +1,30 @@
 #!/bin/sh
 
-sed -i "s~\${DOCKER_REGISTRY_UI_TITLE}~${DOCKER_REGISTRY_UI_TITLE}~" index.html
-sed -i "s~\${REGISTRY_URL}~${REGISTRY_URL}~" index.html
-sed -i "s~\${REGISTRY_TITLE}~${REGISTRY_TITLE}~" index.html
-sed -i "s~\${PULL_URL}~${PULL_URL}~" index.html
-sed -i "s~\${SINGLE_REGISTRY}~${SINGLE_REGISTRY}~" index.html
-sed -i "s~\${CATALOG_ELEMENTS_LIMIT}~${CATALOG_ELEMENTS_LIMIT}~" index.html
-sed -i "s~\${SHOW_CONTENT_DIGEST}~${SHOW_CONTENT_DIGEST}~" index.html
-sed -i "s~\${SHOW_TAG_HISTORY}~${SHOW_TAG_HISTORY}~" index.html
-sed -i "s~\${DEFAULT_REGISTRIES}~${DEFAULT_REGISTRIES}~" index.html
-sed -i "s~\${READ_ONLY_REGISTRIES}~${READ_ONLY_REGISTRIES}~" index.html
-sed -i "s~\${SHOW_CATALOG_NB_TAGS}~${SHOW_CATALOG_NB_TAGS}~" index.html
-sed -i "s~\${HISTORY_CUSTOM_LABELS}~${HISTORY_CUSTOM_LABELS}~" index.html
-sed -i "s~\${USE_CONTROL_CACHE_HEADER}~${USE_CONTROL_CACHE_HEADER}~" index.html
-sed -i "s~\${TAGLIST_ORDER}~${TAGLIST_ORDER}~" index.html
-sed -i "s~\${CATALOG_DEFAULT_EXPANDED}~${CATALOG_DEFAULT_EXPANDED}~" index.html
-sed -i "s~\${CATALOG_MIN_BRANCHES}~${CATALOG_MIN_BRANCHES}~" index.html
-sed -i "s~\${CATALOG_MAX_BRANCHES}~${CATALOG_MAX_BRANCHES}~" index.html
-sed -i "s~\${TAGLIST_PAGE_SIZE}~${TAGLIST_PAGE_SIZE}~" index.html
-sed -i "s~\${REGISTRY_SECURED}~${REGISTRY_SECURED}~" index.html
-sed -i "s~\${ENABLE_VERSION_NOTIFICATION}~${ENABLE_VERSION_NOTIFICATION}~" index.html
-
-grep -o 'THEME[A-Z_]*' index.html | while read e; do
-  sed -i "s~\${$e}~$(printenv $e)~" index.html
-done
-
-if [ -z "${DELETE_IMAGES}" ] || [ "${DELETE_IMAGES}" = false ] ; then
-  sed -i "s/\${DELETE_IMAGES}/false/" index.html
-else
-  sed -i "s/\${DELETE_IMAGES}/true/" index.html
-fi
+# Runtime settings live in HTML attributes. Escape values before substitution.
+# Concatenation avoids sed replacement expansion and script-string injection.
+awk '
+function html(value, result, i, character) {
+  result = ""
+  for (i = 1; i <= length(value); i++) {
+    character = substr(value, i, 1)
+    if (character == "&") character = "&amp;"
+    else if (character == "\"") character = "&quot;"
+    else if (character == "<") character = "&lt;"
+    else if (character == ">") character = "&gt;"
+    result = result character
+  }
+  return result
+}
+{
+  remaining = $0
+  output = ""
+  while (match(remaining, /\$\{[A-Z_]+\}/)) {
+    key = substr(remaining, RSTART + 2, RLENGTH - 3)
+    output = output substr(remaining, 1, RSTART - 1) html(ENVIRON[key])
+    remaining = substr(remaining, RSTART + RLENGTH)
+  }
+  print output remaining
+}' index.html > index.html.tmp && mv index.html.tmp index.html
 
 get_nginx_proxy_headers() {
   (

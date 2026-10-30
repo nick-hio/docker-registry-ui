@@ -1,4 +1,4 @@
-import { isNewestVersion } from '../src/scripts/utils.js';
+import { isNewestVersion } from '../src/lib/utils-registry';
 import assert from 'assert';
 
 describe('utils tests', () => {

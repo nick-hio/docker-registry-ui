@@ -6,5 +6,9 @@ registry-data
 _site
 *.orig
 .serve/
-demo/v2
 .version.json
+
+dist/
+*.tsbuildinfo
+.env
+.env.*

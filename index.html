@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./favicon.ico" />
+    <title>Docker Registry UI</title>
+  </head>
+  <body>
+    <div
+      id="registry-config"
+      hidden
+      data-docker-registry-ui-title="${DOCKER_REGISTRY_UI_TITLE}"
+      data-registry-url="${REGISTRY_URL}"
+      data-registry-title="${REGISTRY_TITLE}"
+      data-pull-url="${PULL_URL}"
+      data-show-content-digest="${SHOW_CONTENT_DIGEST}"
+      data-show-tag-history="${SHOW_TAG_HISTORY}"
+      data-delete-images="${DELETE_IMAGES}"
+      data-catalog-elements-limit="${CATALOG_ELEMENTS_LIMIT}"
+      data-single-registry="${SINGLE_REGISTRY}"
+      data-default-registries="${DEFAULT_REGISTRIES}"
+      data-read-only-registries="${READ_ONLY_REGISTRIES}"
+      data-show-catalog-nb-tags="${SHOW_CATALOG_NB_TAGS}"
+      data-history-custom-labels="${HISTORY_CUSTOM_LABELS}"
+      data-use-control-cache-header="${USE_CONTROL_CACHE_HEADER}"
+      data-taglist-order="${TAGLIST_ORDER}"
+      data-catalog-default-expanded="${CATALOG_DEFAULT_EXPANDED}"
+      data-catalog-min-branches="${CATALOG_MIN_BRANCHES}"
+      data-catalog-max-branches="${CATALOG_MAX_BRANCHES}"
+      data-registry-secured="${REGISTRY_SECURED}"
+      data-theme="${THEME}"
+      data-theme-primary-text="${THEME_PRIMARY_TEXT}"
+      data-theme-neutral-text="${THEME_NEUTRAL_TEXT}"
+      data-theme-background="${THEME_BACKGROUND}"
+      data-theme-hover-background="${THEME_HOVER_BACKGROUND}"
+      data-theme-accent-text="${THEME_ACCENT_TEXT}"
+      data-theme-header-accent-text="${THEME_HEADER_ACCENT_TEXT}"
+      data-theme-header-text="${THEME_HEADER_TEXT}"
+      data-theme-header-background="${THEME_HEADER_BACKGROUND}"
+      data-theme-footer-text="${THEME_FOOTER_TEXT}"
+      data-theme-footer-neutral-text="${THEME_FOOTER_NEUTRAL_TEXT}"
+      data-theme-footer-background="${THEME_FOOTER_BACKGROUND}"
+      data-taglist-page-size="${TAGLIST_PAGE_SIZE}"
+      data-enable-version-notification="${ENABLE_VERSION_NOTIFICATION}"
+    ></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
